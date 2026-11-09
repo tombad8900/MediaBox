@@ -1,0 +1,7 @@
+# Android build outputs
+*.apk
+*.aar
+build/
+.gradle/
+.idea/
+local.properties
