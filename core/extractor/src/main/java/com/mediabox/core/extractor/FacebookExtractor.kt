@@ -18,7 +18,21 @@ class FacebookExtractor : MediaExtractor {
 
     override suspend fun extract(url: String): Result<MediaInfo> = withContext(Dispatchers.IO) {
         try {
-            val encodedUrl = URLEncoder.encode(url, "UTF-8")
+            var targetUrl = url.trim()
+            if (targetUrl.contains("share/r") || targetUrl.contains("share/v") || targetUrl.contains("fb.watch")) {
+                val headConn = URL(targetUrl).openConnection() as HttpURLConnection
+                headConn.instanceFollowRedirects = true
+                headConn.requestMethod = "GET"
+                headConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+                headConn.connect()
+                val redirectedUrl = headConn.url.toString()
+                headConn.disconnect()
+                if (redirectedUrl.isNotBlank()) {
+                    targetUrl = redirectedUrl
+                }
+            }
+
+            val encodedUrl = URLEncoder.encode(targetUrl, "UTF-8")
             val pluginUrl = "https://www.facebook.com/plugins/video.php?href=$encodedUrl&show_text=0"
             
             val connection = URL(pluginUrl).openConnection() as HttpURLConnection
@@ -43,7 +57,7 @@ class FacebookExtractor : MediaExtractor {
             }
 
             if (options.isNotEmpty()) {
-                Result.success(MediaInfo(originalUrl = url, title = "فيديو Facebook", author = "Facebook Video", platform = PlatformType.FACEBOOK, options = options))
+                Result.success(MediaInfo(originalUrl = url, title = "فيديو Facebook Reel", author = "Facebook Video", platform = PlatformType.FACEBOOK, options = options))
             } else {
                 Result.failure(Exception("لم نتمكن من استخراج رابط الفيديو المباشر من Facebook، تأكد أن الفيديو عام"))
             }
