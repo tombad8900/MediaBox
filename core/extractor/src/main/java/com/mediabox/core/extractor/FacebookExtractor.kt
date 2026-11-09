@@ -24,8 +24,8 @@ class FacebookExtractor : MediaExtractor {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
 
             val html = connection.inputStream.bufferedReader().readText()
-            val sdMatcher = Pattern.compile("(?:sd_src|"playable_url"):\s*"([^"]+)"").matcher(html)
-            val hdMatcher = Pattern.compile("(?:hd_src|"playable_url_quality_hd"):\s*"([^"]+)"").matcher(html)
+            val sdMatcher = Pattern.compile("""(?:sd_src|"playable_url"):\s*"([^"]+)"""").matcher(html)
+            val hdMatcher = Pattern.compile("""(?:hd_src|"playable_url_quality_hd"):\s*"([^"]+)"""").matcher(html)
 
             val options = mutableListOf<StreamOption>()
             if (hdMatcher.find()) {

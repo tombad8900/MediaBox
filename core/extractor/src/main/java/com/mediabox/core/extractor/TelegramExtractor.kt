@@ -23,18 +23,18 @@ class TelegramExtractor : MediaExtractor {
             connection.setRequestProperty("User-Agent", "Mozilla/5.0")
 
             val html = connection.inputStream.bufferedReader().readText()
-            val videoMatcher = Pattern.compile("<video[^>]+src=\"([^\"]+)\"").matcher(html)
+            val videoMatcher = Pattern.compile("""<video[^>]+src="([^"]+)"""").matcher(html)
             
             if (videoMatcher.find()) {
                 val videoUrl = videoMatcher.group(1)
-                val textMatcher = Pattern.compile("class=\"tgme_widget_message_text[^\"]*\"[^>]*>(.*?)</div>", Pattern.DOTALL).matcher(html)
-                val caption = if (textMatcher.find()) textMatcher.group(1).replaceAll("<[^>]+>", "").trim() else "منشور Telegram"
+                val textMatcher = Pattern.compile("""class="tgme_widget_message_text[^"]*"[^>]*>(.*?)</div>""", Pattern.DOTALL).matcher(html)
+                val rawCaption = if (textMatcher.find()) textMatcher.group(1).replace(Regex("<[^>]+>"), "").trim() else "منشور Telegram"
 
                 val options = listOf(
                     StreamOption(id = "tg_mp4", qualityLabel = "فيديو MP4 مباشر", format = "mp4", downloadUrl = videoUrl, mediaType = MediaType.VIDEO)
                 )
 
-                Result.success(MediaInfo(originalUrl = url, title = caption.take(60), author = "Telegram Channel", platform = PlatformType.TELEGRAM, options = options))
+                Result.success(MediaInfo(originalUrl = url, title = rawCaption.take(60), author = "Telegram Channel", platform = PlatformType.TELEGRAM, options = options))
             } else {
                 Result.failure(Exception("لم يتم العثور على وسائط فيديو قابلة للتنزيل"))
             }
