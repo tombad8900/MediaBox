@@ -29,11 +29,13 @@ class FacebookExtractor : MediaExtractor {
 
             val options = mutableListOf<StreamOption>()
             if (hdMatcher.find()) {
-                val hdUrl = hdMatcher.group(1).replace("\/", "/")
+                val rawHdUrl = hdMatcher.group(1)
+                val hdUrl = rawHdUrl.replace("""\/""", "/")
                 options.add(StreamOption(id = "fb_hd", qualityLabel = "فيديو Facebook HD", format = "mp4", downloadUrl = hdUrl, mediaType = MediaType.VIDEO))
             }
             if (sdMatcher.find()) {
-                val sdUrl = sdMatcher.group(1).replace("\/", "/")
+                val rawSdUrl = sdMatcher.group(1)
+                val sdUrl = rawSdUrl.replace("""\/""", "/")
                 options.add(StreamOption(id = "fb_sd", qualityLabel = "فيديو Facebook SD", format = "mp4", downloadUrl = sdUrl, mediaType = MediaType.VIDEO))
             }
 
