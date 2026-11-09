@@ -5,3 +5,9 @@ build/
 .gradle/
 .idea/
 local.properties
+
+*.mp4
+*.m4a
+*.webm
+test_*.py
+mediabox.py
