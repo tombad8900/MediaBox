@@ -18,10 +18,13 @@ class FacebookExtractor : MediaExtractor {
 
     override suspend fun extract(url: String): Result<MediaInfo> = withContext(Dispatchers.IO) {
         try {
-            val pluginUrl = "https://www.facebook.com/plugins/video.php?href=" + URLEncoder.encode(url, "UTF-8") + "&show_text=0"
+            val encodedUrl = URLEncoder.encode(url, "UTF-8")
+            val pluginUrl = "https://www.facebook.com/plugins/video.php?href=$encodedUrl&show_text=0"
+            
             val connection = URL(pluginUrl).openConnection() as HttpURLConnection
             connection.requestMethod = "GET"
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)")
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36")
+            connection.setRequestProperty("Accept-Language", "ar,en;q=0.9")
 
             val html = connection.inputStream.bufferedReader().readText()
             val sdMatcher = Pattern.compile("""(?:sd_src|"playable_url"):\s*"([^"]+)"""").matcher(html)
@@ -31,21 +34,21 @@ class FacebookExtractor : MediaExtractor {
             if (hdMatcher.find()) {
                 val rawHdUrl = hdMatcher.group(1)
                 val hdUrl = rawHdUrl.replace("""\/""", "/")
-                options.add(StreamOption(id = "fb_hd", qualityLabel = "فيديو Facebook HD", format = "mp4", downloadUrl = hdUrl, mediaType = MediaType.VIDEO))
+                options.add(StreamOption(id = "fb_hd", qualityLabel = "جودة عالية HD", format = "mp4", downloadUrl = hdUrl, mediaType = MediaType.VIDEO))
             }
             if (sdMatcher.find()) {
                 val rawSdUrl = sdMatcher.group(1)
                 val sdUrl = rawSdUrl.replace("""\/""", "/")
-                options.add(StreamOption(id = "fb_sd", qualityLabel = "فيديو Facebook SD", format = "mp4", downloadUrl = sdUrl, mediaType = MediaType.VIDEO))
+                options.add(StreamOption(id = "fb_sd", qualityLabel = "جودة قياسية SD", format = "mp4", downloadUrl = sdUrl, mediaType = MediaType.VIDEO))
             }
 
             if (options.isNotEmpty()) {
-                Result.success(MediaInfo(originalUrl = url, title = "فيديو Facebook", author = "Facebook", platform = PlatformType.FACEBOOK, options = options))
+                Result.success(MediaInfo(originalUrl = url, title = "فيديو Facebook", author = "Facebook Video", platform = PlatformType.FACEBOOK, options = options))
             } else {
-                Result.failure(Exception("لم يتم العثور على روابط فيديو عامة في الرابط"))
+                Result.failure(Exception("لم نتمكن من استخراج رابط الفيديو المباشر من Facebook، تأكد أن الفيديو عام"))
             }
         } catch (e: Exception) {
-            Result.failure(e)
+            Result.failure(Exception("خطأ في الاتصال بـ Facebook: ${e.localizedMessage}"))
         }
     }
 }
